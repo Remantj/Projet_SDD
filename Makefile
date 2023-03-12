@@ -26,3 +26,7 @@ directory: directory.o hachage.o LC.o
 worktree: worktree.o hachage.o
 	gcc -Wall -o worktree worktree.o hachage.o
 
+
+clean:
+	rm *.o hachage LC directory worktree
+
