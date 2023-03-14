@@ -19,4 +19,13 @@ void libererWorkFile(WorkFile* wf);
 char* wfts(WorkFile* wf);
 WorkFile* stwf(char* ch);
 
+WorkTree* initWorkTree();
+void libererWorkTree(WorkTree* wkt);
+int inWorkTree(WorkTree* wt, char* name);
+int appendWorkTree(WorkTree* wt, char* name, char* hash, int mode);
+char* wtts(WorkTree* wt);
+WorkTree* stwt(char* s);
+int wttf(WorkTree* wt, char* file);
+WorkTree* ftwt(char* file);
+
 #endif
