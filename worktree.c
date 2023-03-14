@@ -135,7 +135,6 @@ WorkTree* stwt(char* s){
         ch[i] = '\0';
         i = 0;
         c++;
-        printf("%s\n", ch);
         wf = stwf(ch);
         if (wf == NULL){
             libererWorkTree(wt);
@@ -147,11 +146,7 @@ WorkTree* stwt(char* s){
             return NULL;
         }
         appendWorkTree(wt, wf->name, wf->hash, wf->mode);
-        printf("%s\n",wt->tab[0].name);
-        printf("%s\n",wt->tab[0].hash);
-        printf("%d\n",wt->tab[0].mode);
         libererWorkFile(wf);
-        wt->n = wt->n + 1;
     }
     return wt;
 }
@@ -174,18 +169,33 @@ int wttf(WorkTree* wt, char* file){
 }
 
 WorkTree* ftwt(char* file){
+    //Alloc
     FILE* f = fopen(file, "r");
     if (f==NULL){
         printf("Erreur lors de l'ouverture du fichier %s\n", file);
         return NULL;
     }
-    char* s = (char*)malloc(3000*sizeof(char)); //Possible probleme de taille
-    fscanf(f, "%s", s);
-    WorkTree* wt = stwt(s);
-    free(s);
-    if (wt == NULL){
-        return NULL;
+    char buffer[256];
+    WorkTree* wt = initWorkTree();
+    if (wt == NULL) return NULL;
+    WorkFile* wf;
+    while(fgets(buffer, 256, f)){
+        wf = stwf(buffer);
+        if (wf == NULL){
+            libererWorkTree(wt);
+            fclose(f);
+            return NULL;
+        }
+        if (wt->n >= wt->size){
+            libererWorkTree(wt);
+            libererWorkFile(wf);
+            fclose(f);
+            return NULL;
+        }
+        appendWorkTree(wt, wf->name, wf->hash, wf->mode);
+        libererWorkFile(wf);
     }
+    fclose(f);
     return wt;
 }
 
