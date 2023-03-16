@@ -15,8 +15,12 @@ List* listdir(char* root_dir){
     if (dp != NULL){
         while (( ep = readdir(dp)) != NULL )
         {
-            c = buildCell(ep->d_name);
-            insertFirst(l, c);
+            if( strcmp(ep->d_name, ".") != 0 ) {
+                 if( strcmp(ep->d_name, "..") != 0 ){
+                    c = buildCell(ep->d_name);
+                    insertFirst(l, c);
+                }
+            }
         }
     }
     closedir(dp);
