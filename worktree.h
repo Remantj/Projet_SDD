@@ -28,4 +28,9 @@ WorkTree* stwt(char* s);
 int wttf(WorkTree* wt, char* file);
 WorkTree* ftwt(char* file);
 
+//Les 3 fonctions de l'exercice 5
+char* blobWorkTree(WorkTree* wt);
+char* saveWorkTree(WorkTree* wt, char* path);
+void restoreWorkTree(WorkTree* wt, char* path);
+
 #endif
