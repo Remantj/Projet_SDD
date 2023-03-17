@@ -13,7 +13,7 @@ char* sha256file(char* file){
 
     //ouverture
     char template[100];
-    sprintf(template, "/tmp/%sXXXXXX", file);
+    sprintf(template, "%sXXXXXX", file);
     char fname[100];
     strcpy(fname, template);
     mkstemp(fname);
