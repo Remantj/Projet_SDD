@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "worktree.h"
 #include "hachage.h"
 
@@ -92,9 +94,16 @@ int appendWorkTree(WorkTree* wt, char* name, char* hash, int mode){
     return -1;
 }
 
+
 char* wtts(WorkTree* wt){
     //Alloc
     //On suppose que la taille des chaines de WorkFile est de 256
+    if (wt->n == 0) {
+        char* s = (char*)malloc(1 * sizeof(char));
+        if (s==NULL) return NULL;
+        s[0] = '\0';
+        return s;
+    }
     char* s = (char*)malloc((257*(wt->n))*sizeof(char));
     if (s==NULL) return NULL;
     int i, j;
@@ -199,6 +208,105 @@ WorkTree* ftwt(char* file){
     return wt;
 }
 
+// Exercice 5
+char* blobWorkTree(WorkTree* wt){
+    //création du fichier temporaire
+    char tmp[100];
+    char* filename = (char*)malloc(100*sizeof(char));
+    strcpy(filename,"testXXXXXX"); 
+    sprintf(tmp, "tmp/%sXXXXXX", filename);
+    int id=mkstemp(tmp);
+    if(id == -1){
+        printf("Création du fichier tmp echoué\n");
+    }
+
+    //écriture du contenu dans le fichier tmp
+    if(wttf(wt, tmp) == -1){
+        printf("échec dans l'écriture\n");
+    }
+
+    //hachage du contenu de tmp
+    char* hash = sha256file(tmp);
+
+    //enregistrement du fichier instantané à partir de tmp
+    char *chemin = hashToPath(hash);
+    char dir[3] = {chemin[0], chemin[1], '\0'};
+    if (! file_exists(dir)){
+        char template[10];
+        sprintf(template, "mkdir %s", dir);
+        system(template);
+    }
+    char extension[3]={'.','t','\0'};
+    strcat(chemin,extension);
+    cp(tmp,chemin);
+    
+    //suppression du fichier temporaire
+    char nom[120];
+    sprintf(nom, "rm %s", tmp);
+    system(nom);
+    
+    // on oublie pas de free bien evidemment
+    free(chemin);
+    free(filename);
+    
+    // valeur de retour: hash du fichier tmp
+    return hash;
+}
+
+// Fonction getChmod donné dans l'énoncé
+int getChmod ( const char * path ){
+    struct stat ret ;
+
+    if ( stat(path , &ret) == -1){
+    return -1;
+    }
+
+    return ( ret.st_mode & S_IRUSR ) |( ret.st_mode & S_IWUSR ) |( ret.st_mode & S_IXUSR ) |/*
+    owner*/
+    ( ret.st_mode & S_IRGRP ) |( ret.st_mode & S_IWGRP ) |( ret.st_mode & S_IXGRP ) |/*
+    group*/
+    ( ret.st_mode & S_IROTH ) |( ret.st_mode & S_IWOTH ) |( ret.st_mode & S_IXOTH ) ;/*
+    other*/
+}
+
+
+char* saveWorkTree(WorkTree* wt, char* path){
+    WorkFile* tab = wt->tab;
+    int i;
+    struct stat* ret = (struct stat*)malloc(sizeof(struct stat));
+    for(i=0; i<(wt->n);i++){
+        char name[100];
+        sprintf(name, "%s%s", path, tab[i].name);
+        stat(name, ret);
+        if(S_ISREG(ret->st_mode)){
+            blobFile(name);
+            tab[i].mode = getChmod(name);
+            free(tab[i].hash);
+            tab[i].hash = sha256file(name);
+        }
+        else{
+            WorkTree* newWT = initWorkTree();
+            strcat(name, "/");
+            List* L = listdir(name);
+            Cell* C = *L;
+            while(C){
+                appendWorkTree(newWT, C->data, "(null)", 0);
+                C = C->next;
+            }
+            char* s = saveWorkTree(newWT, name);
+            tab[i].mode = getChmod(name);
+            free(tab[i].hash);
+            tab[i].hash = blobWorkTree(newWT);
+            free(s);
+            libererWorkTree(newWT);
+            libererList(L); 
+
+        }
+    }
+    free(ret);
+    char* hash = blobWorkTree(wt);
+    return hash;    
+}
 
 int main(){
     //createWorkFile
@@ -217,8 +325,8 @@ int main(){
     WorkTree* wt1 = initWorkTree();
 
     //appendWorkTree
-    appendWorkTree(wt1, "fichier1", "dubnduebbdf", 256);
-    appendWorkTree(wt1, "fichier2", "jeiuuzbfiid", 777);
+    appendWorkTree(wt1, "fichier1", "fichier1.txt", 256);
+    appendWorkTree(wt1, "fichier2", "fichier2.txt", 777);
 
     //inWorkTree
     int i;
@@ -244,14 +352,31 @@ int main(){
     char* s4 = wtts(wt3);
     printf("Le contenu de wt3 est :\n%s", s4);    
 
+    //blobWorkTree
+    char* s5 = blobWorkTree(wt4);
+
+    //saveWorkTree
+    WorkTree* wt4 = initWorkTree();
+    // Pour pouvoir tester cette fonction il faudra créer au préalable
+    // un répértoire exercice5 qui contient:
+    // fichier1.txt , exercice1 et fichier2.txt
+    appendWorkTree(wt4, "exercice1", "test1", 0); // ici les hash et le mode on met
+    appendWorkTree(wt4, "exercice1", "test1", 0);   // n'importe quoi car on va les 
+    appendWorkTree(wt4, "fichier1.txt", "test1", 0); // modifier par la suite
+    
+
+
 
     libererWorkFile(wf1);
     libererWorkFile(wf2);
     libererWorkTree(wt1);
     libererWorkTree(wt2);
     libererWorkTree(wt3);
+    libererWorkTree(wt4);
     free(s1);
     free(s2);
     free(s3);
     free(s4);
+    free(s5);
+    free(s6);
 }
