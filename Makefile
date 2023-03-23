@@ -12,6 +12,8 @@ directory.o: directory.c directory.h
 worktree.o: worktree.c worktree.h
 	gcc -Wall -c -o worktree.o worktree.c
 
+commit.o: commit.c commit.h
+	gcc -Wall -c -o commit.o commit.c
 
 
 hachage: hachage.o
@@ -26,7 +28,9 @@ directory: directory.o hachage.o LC.o
 worktree: worktree.o hachage.o directory.o LC.o
 	gcc -Wall -o worktree worktree.o hachage.o directory.o LC.o
 
+commit: commit.o
+	gcc -Wall -o commit commit.o
 
 clean:
-	rm -r *.o hachage LC directory worktree ??
+	rm -r *.o hachage LC directory worktree commit ??
 
