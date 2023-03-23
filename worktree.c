@@ -318,7 +318,9 @@ char* saveWorkTree(WorkTree* wt, char* path){
 
 void setMode ( int mode , char * path ){
     char buff [100];
-    sprintf(buff ,"chmod %d %s", mode ,path);
+    char oct[64];
+    sprintf(oct, "%o", mode);
+    sprintf(buff ,"chmod %s %s", oct ,path);
     system (buff);
 }
 
@@ -343,6 +345,7 @@ void restoreWorkTree(WorkTree* wt, char* path){
         // Si le fichier n'existe pas
         if((fic[0] == 0) && (fic[1] == 0)){
             printf("L'enregistrement instantané n'existe pas %s\n",chemin);
+            free(chemin);
             return;
         }
 
@@ -351,6 +354,7 @@ void restoreWorkTree(WorkTree* wt, char* path){
             printf("Collision de l'enregistrement instantané %s\n",chemin);
             fclose(f);
             fclose(t);
+            free(chemin);
             return;
         }
 
@@ -433,11 +437,11 @@ int main(){
     // Pour pouvoir tester cette fonction il faudra créer au préalable
     // un répértoire exercice5 qui contient:
     // fichier1.txt , exercice1 et fichier2.txt
-    appendWorkTree(wt4, "fichier2.txt", "test1", 0); // ici les hash et le mode on met
-    appendWorkTree(wt4, "exercice1", "test1", 0);   // n'importe quoi car on va les 
-    appendWorkTree(wt4, "fichier1.txt", "test1", 0); // modifier par la suite
-    char* s6= saveWorkTree(wt4, "exercice5/");
-    
+    appendWorkTree(wt4, "fichier2.txt", "74c8c8c43d3c8bdbeaa28fb746a1add5536237a8a07d67aab410484c97b82de4", 511); // ici les hash et le mode on met
+    appendWorkTree(wt4, "exercice1", "d973dffde209a19a76c59d9927609075ecf58f9ce29afcd75b53e32645ed1e88", 511);   // n'importe quoi car on va les 
+                                                     // modifier par la suite
+    //char* s6= saveWorkTree(wt4, "exercice5/");
+    restoreWorkTree(wt4, "exercice5/");
 
 
     libererWorkFile(wf1);
@@ -445,13 +449,13 @@ int main(){
     libererWorkTree(wt1);
     libererWorkTree(wt2);
     libererWorkTree(wt3);
-    //libererWorkTree(wt4);
+    libererWorkTree(wt4);
     free(s1);
     free(s2);
     free(s3);
     free(s4);
     //free(s5);
-    free(s6);
+    //free(s6);
 }
 
 
