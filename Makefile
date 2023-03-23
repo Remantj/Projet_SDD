@@ -23,8 +23,8 @@ LC: LC.o
 directory: directory.o hachage.o LC.o
 	gcc -Wall -o directory directory.o LC.o hachage.o
 
-worktree: worktree.o hachage.o
-	gcc -Wall -o worktree worktree.o hachage.o
+worktree: worktree.o hachage.o directory.o LC.o
+	gcc -Wall -o worktree worktree.o hachage.o directory.o LC.o
 
 
 clean:
