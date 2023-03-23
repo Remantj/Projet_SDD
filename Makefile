@@ -28,5 +28,5 @@ worktree: worktree.o hachage.o directory.o LC.o
 
 
 clean:
-	rm *.o hachage LC directory worktree
+	rm -r *.o hachage LC directory worktree ??
 
