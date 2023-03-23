@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // Le tilde n'est pas reconnu car specifique au shell
 List* listdir(char* root_dir){
@@ -35,14 +36,15 @@ int file_exists(char *file){
 }
 
 void cp(char *from, char *to){
-    if (file_exists(from) == 0)
-        return;
-    
     // Ouverture
     FILE* f = fopen(from, "r");
-    if (f == NULL) return;
+    if (f == NULL){
+        printf("Inpossible d'ouvrir le fichier %s\n", from);
+        return;
+    }
     FILE* t = fopen(to, "w");
     if (t == NULL){
+        printf("Impossible d'ouvrir le fichier %s\n", to);
         fclose(f);
         return;
     }
@@ -77,7 +79,7 @@ char* hashToPath(char* hash){
 void blobFile(char* file){
     char *hash = sha256file(file);
     char *chemin = hashToPath(hash);
-    printf("Le chemin : %s\n", chemin);
+    //printf("Le chemin : %s\n", chemin);
     char dir[3] = {chemin[0], chemin[1], '\0'};
     if (! file_exists(dir)){
         char template[10];
@@ -90,6 +92,7 @@ void blobFile(char* file){
     free(chemin);
 }
 
+/*
 int main(){
     List* l = listdir(".");
     char* str = ltos(l);
@@ -110,3 +113,6 @@ int main(){
 
     libererList(l);
 }
+
+*/
+
