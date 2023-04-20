@@ -1,194 +1,188 @@
 #include "LC.h"
-#include <stdlib.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-List* initList(){
-	//Alloc
-    List* l = (List*)malloc(sizeof(List));
-    if (l==NULL) return NULL;
-    *l = NULL;
-    return l;
+// Initialisation d'une liste vide
+List *initList() {
+  // Alloc
+
+  List *l = (List *)malloc(sizeof(List)); // on alloue de la mémoire pour un pointeur de liste
+  if (l == NULL)
+    return NULL; // si l'alloc echoue en renvoie null
+  *l = NULL; // met la valeur de ce pointeur à Null
+  return l; // on retourne le pointeur de la liste
 }
 
+// Création d'une cellule
+Cell *buildCell(char *ch) {
+  // Alloc
 
-Cell* buildCell(char* ch){
-	//Alloc
-	Cell *c = (Cell*)malloc(sizeof(Cell));
-	if(c==NULL) return NULL;
-	c->data = strdup(ch);
-	c->next = NULL;
-	return c;
+  Cell *c = (Cell *)malloc(sizeof(Cell)); // on alloue de la mémoire pour une cellule
+  if (c == NULL)
+    return NULL; // si l'alloc echoue on renvoie null
+  c->data = strdup(ch); // on dupplique le contenu de ch dans data
+  c->next = NULL; // on met le pointeur du suivant vers null
+  return c; // on retourne la Cell
 }
 
-void libererCell(Cell* c){
-	free(c->data);
-	free(c);
+// Libération d'une cellule
+void libererCell(Cell *c) {
+  free(c->data); // on libère le champ data
+  free(c); // puis on libère la Cell
 }
 
-void libererList(List* l){
-	Cell* xs = *l;
-	Cell* tmp;
-	while (xs){
-		tmp = xs;
-		xs = xs -> next;
-		libererCell(tmp);
-	}
-	free(l);
+// Libération d'une liste
+void libererList(List *l) {
+  Cell *xs = *l;
+  Cell *tmp;
+  while (xs) {
+    tmp = xs;
+    xs = xs->next;
+    libererCell(tmp);
+  }
+  free(l);
 }
 
-void insertFirst(List *L, Cell* C){
-	C->next = *L;
-	*L = C;
+// Insertion d'une cellule en tête d'une liste, ne duplique pas la cellule
+void insertFirst(List *L, Cell *C) {
+  C->next = *L; // on met le pointeur de suivant la Cell vers la tête de la liste
+  *L = C; // puis on met à jour le pointeur de la tête de la liste
 }
 
-char* ctos(Cell* c){
-	//Alloc
-	if(c ==NULL) return NULL;
-	char* ch = strdup(c->data);
-	return ch;
+// Transforme une cellule en chaîne de caractères
+char *ctos(Cell *c) {
+  // Alloc
+
+  if (c == NULL) // si la cellule est null 
+    return NULL; // on retourne null
+  char *ch = strdup(c->data); // sinon on dupplique le contenu du champ data dans la chaîne
+  return ch; // et on retourne la chaîne
 }
 
-char* ltos(List* L){
-	//Alloc
-	if(*L==NULL) return NULL;
-	Cell* tmp = *L;
-	char * ch = (char*)malloc(256*sizeof(char)); // Possible probleme de taille
-	strcpy(ch, tmp->data);
-	tmp = tmp->next;
-	while(tmp){
-		strcat(ch,"|");
-		strcat(ch, (tmp)->data);
-		tmp = tmp->next;
-	}
-	return ch;
+// Transforme un liste en chaîne de caractères
+// C'est à dire l'ensemble des Cell qu'il contient séparé par des "|"
+char *ltos(List *L) {
+  // Alloc
+
+  if (*L == NULL) // on verifie que la liste n'est pas null
+    return NULL; // Si elle est null on retourne null
+  Cell *tmp = *L; // on créer une Cell qui pointe vers la tête de la liste
+
+  // Calcul précis de la zone mémoire à réserver
+  int taille = 0;
+  while (tmp) { // on parcours la liste
+    if (tmp->data != NULL) { // si le champ data de la Cell n'est pas null
+      taille = taille + strlen(tmp->data) + 1; // on ajoute la longueur de data à taille
+    }
+    tmp = tmp->next; // on passe au suivant
+  }
+  taille++;
+
+  tmp = *L; // on remet à jour le pointeur à la tête de la liste
+  if (tmp->data == NULL)
+    return NULL; // si la première Cell a un champ data Null on retourne Null
+  char *ch = (char *)malloc(taille * sizeof(char)); // sinon on alloue une chaine de caractère d'une certaine taille calculé auparavant
+  strcpy(ch, tmp->data); // on copie la première Cell dans la chaîne de caractère
+  tmp = tmp->next;
+  while (tmp) { // on parcours la liste
+    strcat(ch, "|"); // on ajoute le caractère "|" permettant de séparer les éléments
+    strcat(ch, (tmp)->data); // on ajoute l'élément dans la chaîne de caractère
+    tmp = tmp->next; // on passe à l'éléments suivant
+  }
+  return ch; // on finit par retourner la chaîne de caractère
 }
 
-Cell* listGet(List* L, int i){
-	// On suppose que i < len(L)
-	Cell * tmp = *L;
-	while(i>1){
-		if(tmp==NULL) return NULL;
-		tmp = tmp->next;
-		i--;
-	}
-	return tmp;
+// Retourne le i-ème élément de la liste, ne fait pas de duplication
+// On suppose que i < len(L)
+Cell *listGet(List *L, int i) {
+  Cell *tmp = *L; // on créer une Cell qui pointe vers la tête de la liste
+  while (i > 1) { // on fait une boucle qui permet d'accéder au ième éléments de la liste
+    if (tmp == NULL) // si tmp est Null cela signifie qu'on a dépassé la taille de la liste
+      return NULL; // donc on retourne Null
+    tmp = tmp->next; // sinon on passe à l'élément suivant
+    i--; // on décremente le compteur
+  }
+  return tmp; // on sort de la boucle, donc on retourne cet élément
 }
 
-Cell* searchList(List* L, char* str){
-	Cell * tmp = *L;
-	if (tmp == NULL) return NULL;
-	while(tmp){
-		if (strcmp(str, tmp->data)==0){
-			return tmp;
-		}
-		tmp = tmp->next;
-	}
-	return NULL;
+// Cherche l'élément dont le champs name est égal à str dans la liste
+// Ne duplique pas la cellule
+Cell *searchList(List *L, char *str) {
+  Cell *tmp = *L; // on créer une Cell qui pointe vers la tête de la liste
+  if (tmp == NULL)
+    return NULL; // si le pointeur est Null on retourne Null
+  while (tmp) { // on parcours la liste
+    if (strcmp(str, tmp->data) == 0) { // on compare à chaque fois le champ data avec str
+      return tmp; // si c'est identique alors on le retourne
+    }
+    tmp = tmp->next; // sinon on passe au suivant
+  }
+  return NULL; //si on sort de la boucle , c'est qu'on ne l'a pas trouvé, donc on retourne Null
 }
 
-//Solution très moche pour cette fonction, si t'as mieux je suis preneur
-List* stol(char* s){
-	//Alloc
-	List* L = initList();
-	int i_s = 0;
-	int i_tmp = 0;
-	char* tmp=(char*)malloc(256*sizeof(char)); // Possible probleme
-	Cell* c;
-	while(s[i_s] != '\0'){
-		if ((s[i_s] == '|') && (i_tmp > 0)){
-			tmp[i_tmp] = '\0';
-			c = buildCell(tmp);
-			insertFirst(L, c);
-			i_tmp = 0;
-		}
-		else{
-			tmp[i_tmp] = s[i_s];
-			i_tmp++;
-		}
-		i_s++;
-	}
-	if (i_tmp>0){
-		tmp[i_tmp] = '\0';
-		c = buildCell(tmp);
-		insertFirst(L, c);
-	}
-	free(tmp);
-	return L;
+// Transforme une chaîne de caractères représentant un list en une liste
+List *stol(char *s) {
+  // Alloc
+  
+  List *L = initList(); // on initialise la liste
+  int i_s = 0; // indice pour parcourir la chaîne s
+  int i_tmp = 0; // indice pour parcourir la chaine tmp
+  char *tmp = (char *)malloc(256 * sizeof(char)); // on alloue de la mémoire pour une chaîne de caractère
+  Cell *c;
+
+  // On parcourt la chaîne s
+  while (s[i_s] != '\0') { // tant qu'on ne rencontre pas le caractère fin de chaîne
+    if ((s[i_s] == '|') && (i_tmp > 0)) { // on regarde si le caractère est égal à "|"
+      tmp[i_tmp] = '\0'; // si c'est la cas, on rajoute le caractère fin de chaîne à la chaîne de caractère tmp
+      c = buildCell(tmp); // puis on créer une Cell ayant pour data tmp
+      insertFirst(L, c); // on insère cette Cell dans la liste
+      i_tmp = 0; // et on remet à 0, l'indice pour la chaîne tmp
+    } else {
+      tmp[i_tmp] = s[i_s]; // sinon on copie caractère par caractère 
+      i_tmp++; // on incrémente l'indice de parcours pour tmp
+    }
+    i_s++; // on incrément l'indice de parcours pour s
+  }
+
+  if (i_tmp > 0) { // on regarde si l'indice tmp est supérieur à 0
+    tmp[i_tmp] = '\0'; // si c'est le cas, cela signifie qu'il reste une dernière Cell qu'on a pas encore ajouté
+    c = buildCell(tmp); // donc on ajoute cette dernière Cell à la liste
+    insertFirst(L, c);
+  }
+  free(tmp);
+  return L; // on retourne la Liste
 }
 
-void ltof(List* L, char* path){
-	// ouvreture en mode écriture
-	FILE* f = fopen(path, "w");
-	if (f==NULL) printf("Erreur lors de l'ouverture du fichier %s\n", path);
-	char *tmp = ltos(L);
-	fprintf(f,"%s",tmp);
-	// fermeture
-	fclose(f);
-	free(tmp);
+// Ecris la représentation sous forme de chaîne de caractère d'une liste dans un fichier
+void ltof(List *L, char *path) {
+  FILE *f = fopen(path, "w"); // on essaie d'ouvrir le fichier en mode écriture
+  if (f == NULL){
+    printf("Erreur lors de l'ouverture du fichier %s\n", path); // si ça echoue on envoie un message d'erreur
+    return; // et on quitte la fonction
+  }
+  char *tmp = ltos(L); // on convertit la liste en une chaîne de caractère
+  fprintf(f, "%s", tmp); // on écrit cette chaîne de caractère dans le fichier
+
+  fclose(f); // on ferme le fichier
+  free(tmp);
 }
 
-List* ftol(char* path){
-	//Alloc
-	// ouverture en mode lecture
-	FILE* f = fopen(path, "r");
-	if (f==NULL) printf("Erreur lors de l'ouverture du fichier %s\n", path);
-	char buffer[256];
-	fgets(buffer, 256, f);
-	List* L = stol(buffer);
-	//fermeture
-	fclose(f);
-	return L;
-}
+// Transforme le contenu d'un fichier en une liste
+// On suppose que la taille de la chaîne contenue dans le fichier ne dépasse pas
+// 256 caractères
+List *ftol(char *path) {
+  // Alloc
 
-int main(){
-	char* ch = "caca";
-	char* ch2 = "caca2";
-	List* l = initList();
-	Cell* c = buildCell(ch);
-	Cell* c2 = buildCell(ch2);
-	insertFirst(l,c);
-	insertFirst(l,c2);
-	
-	// test de ctos
-	char* ch1 = ctos(c);
-	printf("test de ctos : %s\n",ch1);
-	free(ch1);
-	
-	//test ltos
-	char* ch3 = ltos(l);
-	printf("test ltos : %s\n",ch3);
-	free(ch3);
-	
-	// test de listGet
-	char *ch4 = ctos(listGet(l,2));
-	printf("test de listGet : %s\n",ch4);
-	free(ch4);
-	
-	//test de searchList
-	Cell* c3 = searchList(l,"caca");
-	char *ch8 = ctos(c3);
-	printf("test de searchList : %s\n",ch8);
-	free(ch8);
-	
-	//test de stol
-	char* ch5 = "je|mange|des|nems";
-	List* l2 = stol(ch5);
-	char* ch6 = ltos(l2);
-	printf("test de stol : %s\n",ch6);
-	free(ch6);
-	
-	//test de ltof
-	ltof(l2, "caca.txt");
-	
-	//test de ftol
-	List* l3 = ftol("caca.txt");
-	char* ch7 = ltos(l3);
-	printf("test de ftol : %s\n",ch7);
-	free(ch7);
+  FILE *f = fopen(path, "r"); // on ouvre le fichier en mode lecture
+  if (f == NULL){
+    printf("Erreur lors de l'ouverture du fichier %s\n", path); // si ça echoue on affiche un message d'erreur
+    return NULL; // et on retourne NULL
+  }
+  char buffer[256]; // on initialise une chaîne de caractère de taille 256
+  fgets(buffer, 256, f); // on copie dedans le contenu du fichier, qui ici est supposé en une ligne
+  List *L = stol(buffer); // puis on transforme cette chaîne en une Liste
 
-	libererList(l);
-	libererList(l2);
-	libererList(l3);
+  fclose(f); // on ferme le fichier
+  return L; // et on retourne la liste
 }
